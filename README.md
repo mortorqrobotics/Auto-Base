@@ -1,34 +1,6 @@
 # Bot-Mitzvah
 
-2023 Team 1515 Robot Code
-
-## Setup
-1. Setup buttons in Control
-2. Configure IDs in RobotMap
-3. Set steering offsets in RobotMap (follow instructions below)
-
-## Driver button lists 
-
-### First driver button list:
-| Action| Button |
-| ------------- | ------------- |
-| Drive | Left stick |
-| Turn | Right stick |
-| Drive robot oriented | LB |
-| Slow robot down | LT |
-| Reset gyro | Back |
-| Align | Statr |
-
-### Second Driver Buttons
-| Action| Button |
-| ------------- | ------------- |
-| Grab | RB |
-| Release | LB |
-| Score high | X |
-| Score mid | B |
-| Score low | A |
-| Vertical arm movement | Left stick |
-| Vertical arm movement | Right stick | 
+2023 Team 1515 Auto Base
 
 ## Setting up module offsets
 
