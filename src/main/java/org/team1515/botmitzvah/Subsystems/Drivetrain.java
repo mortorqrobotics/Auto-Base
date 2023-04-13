@@ -36,15 +36,16 @@ public class Drivetrain extends SubsystemBase {
                 new SwerveModule(3, SwerveConstants.Swerve.Mod3.constants)
         };
 
-        odometry = new SwerveDriveOdometry(SwerveConstants.Swerve.swerveKinematics, new Rotation2d(), getModulePositions(), initialPos);
-
         /*
          * By pausing init for a second before setting module offsets, we avoid a bug
          * with inverting motors.
          * See https://github.com/Team364/BaseFalconSwerve/issues/8 for more info.
          */
         Timer.delay(1.0);
+        
         resetModulesToAbsolute();
+        
+        odometry = new SwerveDriveOdometry(SwerveConstants.Swerve.swerveKinematics, getYaw(), getModulePositions(), initialPos);
     }
 
     /**
