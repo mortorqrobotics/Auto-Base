@@ -6,11 +6,19 @@ package org.team1515.botmitzvah;
 
 import org.team1515.botmitzvah.Utils.*;
 
+import com.pathplanner.lib.PathConstraints;
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.PathPoint;
+import com.pathplanner.lib.auto.PIDConstants;
+import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.team364.swervelib.util.SwerveConstants;
 import com.team364.swervelib.util.SwerveConstants.AutoConstants;
 import com.team364.swervelib.util.SwerveConstants.Swerve;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.team1515.botmitzvah.Commands.*;
 import org.team1515.botmitzvah.Subsystems.*;
@@ -37,12 +45,26 @@ public class RobotContainer {
 
   public static Drivetrain drivetrain;
   public static Gyroscope gyro;
+  public static SwerveAutoBuilder swerveAutoBuilder;
 
   public RobotContainer() {
     mainController = new XboxController(0);
 
     gyro = new Gyroscope();
     drivetrain = new Drivetrain(new Pose2d());
+    Map<String, Command> eventMap = new HashMap<>();
+
+    swerveAutoBuilder = new SwerveAutoBuilder(
+        drivetrain::getRobotPose, // Pose2d supplier
+        drivetrain::resetOdometry, // Pose2d consumer, used to reset odometry at the beginning of auto
+        SwerveConstants.Swerve.swerveKinematics, // SwerveDriveKinematics
+        new PIDConstants(5.0, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+        new PIDConstants(0.5, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
+        drivetrain::setModuleStates, // Module states consumer used to output to the drive subsystem
+        eventMap,
+        drivetrain // The drive subsystem. Used to properly set the requirements of path following commands
+    );
+
     configureBindings();
   }
 
@@ -58,39 +80,16 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    TrajectoryConfig config = new TrajectoryConfig(
-        1,
-        1)
-        .setKinematics(SwerveConstants.Swerve.swerveKinematics);
+    
+    PathPlannerTrajectory traj1 = PathPlanner.generatePath(
+      new PathConstraints(1, 1), // max speed and accel in m/s and m/s^2 
+      new PathPoint(new Translation2d(1.0, 1.0), Rotation2d.fromDegrees(0)),
+      new PathPoint(new Translation2d(3.0, 3.0), Rotation2d.fromDegrees(45))
+    );
 
-    // An example trajectory to follow. All units in meters.
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)),
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, 0, new Rotation2d(0)),
-        config);
+    Command swerveAutoCommand = swerveAutoBuilder.fullAuto(traj1);
 
-    Constraints thetaConstraints = new Constraints(0, 0);
-    ProfiledPIDController thetaController = new ProfiledPIDController(
-       0, 0, 0, thetaConstraints);
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
-
-    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        exampleTrajectory,
-        drivetrain::getRobotPose,
-        SwerveConstants.Swerve.swerveKinematics,
-        new PIDController(0, 0, 0),
-        new PIDController(0, 0, 0),
-        thetaController,
-        drivetrain::setModuleStates,
-        drivetrain);
-
-    drivetrain.resetOdometry(exampleTrajectory.getInitialPose());
-
-    return swerveControllerCommand.andThen(() -> drivetrain.drive(new Translation2d(0, 0), 0, false, true));
+    return swerveAutoCommand.andThen(() -> drivetrain.drive(new Translation2d(0, 0), 0, false, true));
   }
 
   public static double getRobotSpeed() {
