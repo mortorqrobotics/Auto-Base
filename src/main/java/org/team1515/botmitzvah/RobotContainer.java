@@ -84,7 +84,7 @@ public class RobotContainer {
     PathPlannerTrajectory traj1 = PathPlanner.generatePath(
       new PathConstraints(1, 1), // max speed and accel in m/s and m/s^2 
       new PathPoint(new Translation2d(1.0, 1.0), Rotation2d.fromDegrees(0)),
-      new PathPoint(new Translation2d(3.0, 3.0), Rotation2d.fromDegrees(45))
+      new PathPoint(new Translation2d(3.0, 0.0), Rotation2d.fromDegrees(45))
     );
 
     Command swerveAutoCommand = swerveAutoBuilder.fullAuto(traj1);
